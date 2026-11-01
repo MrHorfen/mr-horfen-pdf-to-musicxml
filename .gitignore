@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+temp/
+input/
+output/
+*_oemer.musicxml
+*.report.txt
+*.log
+hs_err_pid*.log
+replay_pid*.log
+.venv/
+.env
