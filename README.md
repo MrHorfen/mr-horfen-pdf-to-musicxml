@@ -65,6 +65,40 @@ python score_converter/main.py -i .\input\score.pdf -o .\output --dpi 300 --inst
 | `modules/pdf_preprocessor/` | 渲染、纠偏、增强、区域裁剪、质量闸门 |
 | `musicxml_exporter.py` / `error_corrector.py` | 导出与规则级纠错 |
 
+### 结果体检与分诊（`triage/`）
+
+转码失败时，多数工具只会说"转换失败"。这里多一层结构体检：把每页 XML、合并后 XML、渲染 PDF 的指标算出来，匹配到病例库，给出结论和处方。
+
+```
+每页 MusicXML ┐
+合并后 MusicXML ├→ triage/diagnose.py → 指标 JSON → triage/router.py → blocked / needs_review / healthy
+渲染 PDF / OMR 日志 ┘                                  (triage/cases.json)
+                                                                │
+                                                     triage/user_layer.py
+                                                                │
+                                                    用户能看懂的一两句话
+```
+
+```powershell
+python triage/diagnose.py --pages .\output\pages --merged .\output\merged.musicxml --rendered .\output\out.pdf --logs .\omr.log --out diag.json
+python triage/router.py --diag diag.json --cases triage\cases.json --json-out route.json
+python triage/user_layer.py --route route.json --cases triage\cases.json
+```
+
+| 文件 | 职责 |
+|---|---|
+| `triage/diagnose.py` | 采集页级 / 跨页 / 合并层 / 渲染层结构指标 |
+| `triage/router.py` | 指标匹配病例，输出结论与处方 |
+| `triage/user_layer.py` | 后端结论 → 用户文案；技术词泄漏直接报错 |
+| `triage/cases.json` | 12 条结构化病例（C01–C12） |
+| `triage/docs/score_triage_cases.md` | 完整病例文档：字段规范、16 条历史台账、黑名单 X01–X07 |
+
+**病例库的价值在于黑名单**：上下半页切分、按声部 Y 坐标切割、换 OMR 引擎、72 DPI 直送识别——这些都已实测证伪。症状命中黑名单时，路由禁止再把它当处方输出。
+
+`--rendered` 与 `--logs` 都是可选的：省掉前者不做渲染层检查（空白页、墨迹占比），省掉后者无法判断内存溢出（C09）。
+
+这套只验证**结构和一致性**，验证不了音乐正确性：音高错、节奏错、声部顺序错，签名算不出来，只能靠人工反馈闭环。
+
 ### 已知限制（不粉饰）
 
 - 识别质量的上限由**原始扫描质量**决定。歪斜、糊边、手写批注会直接拉低音高与符杠的准确率。
@@ -101,6 +135,25 @@ Set the toolchain paths via environment variables (`AUDIVERIS`, `JAVA_HOME`).
 ```powershell
 python score_converter/main.py -i .\input\score.pdf -o .\output --dpi 300 --instrument piano -v
 ```
+
+### Output triage (`triage/`)
+
+When a conversion fails, most tools just say "failed". This repo adds a structural check: measure per-page XML, merged XML, and rendered PDF, match against a case library, and return a verdict plus a prescription.
+
+```powershell
+python triage/diagnose.py --pages .\output\pages --merged .\output\merged.musicxml --rendered .\output\out.pdf --logs .\omr.log --out diag.json
+python triage/router.py --diag diag.json --cases triage\cases.json --json-out route.json
+python triage/user_layer.py --route route.json --cases triage\cases.json
+```
+
+- `diagnose.py` — collects page-level, cross-page, merge-level and render-level metrics
+- `router.py` — matches metrics to cases (`C01`–`C12`), returns `blocked` / `needs_review` / `healthy`
+- `user_layer.py` — converts findings into at most two plain sentences; hard-fails if backend terms leak
+- `cases.json` / `docs/score_triage_cases.md` — 12 structured cases, a 16-entry historical ledger, and a blacklist (`X01`–`X07`)
+
+The blacklist is the valuable part: page halving, per-voice Y-cut, swapping the OMR engine, and 72 DPI input are all proven not to work. When a symptom matches one of them, the router is forbidden from prescribing it again.
+
+This layer validates **structure and consistency only** — not musical correctness. Wrong pitch, wrong rhythm, and voice misordering cannot be detected by these signatures.
 
 ### Limitations
 
