@@ -171,3 +171,37 @@ This layer validates **structure and consistency only** — not musical correctn
 This repository is **source-available, not open source** in the OSI sense. Commercial use of any kind is prohibited. See [LICENSE](LICENSE).
 
 商业授权请联系作者。/ For commercial licensing, contact the author.
+
+<br>
+
+## 第三方依赖与许可 / Third-Party Dependencies
+
+本仓库只包含作者原创代码，以 PolyForm Noncommercial 1.0.0 授权。下列组件**不在本仓库内**，由用户通过官方渠道自行安装，各自适用其原有许可，与本仓库的授权相互独立。
+
+| 组件 | 许可 | 使用方式 |
+|---|---|---|
+| Audiveris 5.x | AGPL-3.0 | 独立外部程序。本仓库不打包、不分发、不修改其代码，仅通过命令行调用并读取其输出的 `.mxl` 文件 |
+| PyMuPDF（`fitz`） | AGPL-3.0（另有 Artifex 商业授权） | 通过 pip 由用户安装，本仓库不随附；代码中 `import fitz` 用于 PDF 渲染与文本层提取 |
+| lxml | BSD-3-Clause | pip 安装 |
+| OpenCV（`opencv-python`） | Apache-2.0 | pip 安装 |
+| Pillow | MIT-CMU（HPND） | pip 安装 |
+| NumPy / SciPy | BSD-3-Clause | pip 安装 |
+
+**关于 Audiveris**：它是以独立进程运行的外部程序。本仓库与它之间只有命令行参数传递和文件交换，不含其任何源码，也不构成对其的分发，因此不触发 AGPL 对衍生作品的分发义务。
+
+**关于 PyMuPDF（需特别注意）**：它以库的形式被导入，不同于 Audiveris 的独立进程调用。AGPL 的著佐权是否会延伸至导入它的代码，取决于具体的使用与分发方式，作者不在此作法律判断。如果你的用途涉及商业行为，或打算把本项目作为网络服务对外提供，请自行取得 PyMuPDF 的商业授权，或改为使用许可更宽松的等价实现（例如 `pypdfium2`）。
+
+This repository contains only original code licensed under PolyForm Noncommercial 1.0.0. The components below are **not bundled here**; users install them from official channels, and each remains under its own license.
+
+| Component | License | Usage |
+|---|---|---|
+| Audiveris 5.x | AGPL-3.0 | Independent executable. Not bundled, not distributed, not modified; invoked via CLI, output read from `.mxl` files |
+| PyMuPDF (`fitz`) | AGPL-3.0 (commercial license available from Artifex) | Installed by the user via pip, not shipped here; imported for PDF rendering and text-layer extraction |
+| lxml | BSD-3-Clause | pip |
+| OpenCV (`opencv-python`) | Apache-2.0 | pip |
+| Pillow | MIT-CMU (HPND) | pip |
+| NumPy / SciPy | BSD-3-Clause | pip |
+
+**Audiveris** runs as a separate process: only command-line arguments and files cross the boundary, so this repository is not a derivative work and does not distribute it.
+
+**PyMuPDF** is different — it is imported as a library. Whether AGPL copyleft extends to importing code depends on your usage and distribution model; no legal conclusion is asserted here. For commercial use, or for offering this as a network service, obtain a commercial PyMuPDF license or replace it with a permissively licensed alternative such as `pypdfium2`.
